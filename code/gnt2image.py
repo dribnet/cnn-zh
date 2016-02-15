@@ -87,7 +87,6 @@ class ReadGntFile(object):
         return self.file_list
 
     def show_image(self):
-        end_of_image = False
         count_file = 0
         count_single = 0
         width_list = []
@@ -96,30 +95,34 @@ class ReadGntFile(object):
         #open all gnt files
         for file_name in self.file_list:
             count_file = count_file + 1
+            end_of_image = False
             with open(file_name, 'rb') as f:
                 while not end_of_image:
-                    count_single = count_single + 1
                     this_single_image = SingleGntImage(f)
 
                     # get the pixel matrix of a single image
                     label, pixel_matrix, width, height, end_of_image = \
                         this_single_image.read_single_image()
                     
-                    width_list.append(width)
-                    height_list.append(height)
-                    print count_single, label, \
-                        width, height, numpy.shape(pixel_matrix)
+                    if not end_of_image:
+                        count_single = count_single + 1
+                        width_list.append(width)
+                        height_list.append(height)
+                        print count_single, label, \
+                            width, height, numpy.shape(pixel_matrix)
 
-                    #self.save_image(pixel_matrix, label, count_single)
-                    #if count_single >= 10:
-                    #   end_of_image = True
+                        self.save_image(pixel_matrix, label, count_single)
+                        #if count_single >= 10:
+                          #end_of_image = True
 
             print ("End of file #%i") % (count_file)
 
     def save_image(self, matrix, label, count):
-        im = Image.fromarray(matrix)
-        name = ("tmp/test-%s (%i).tiff") % (label, count)
+        im = Image.fromarray((matrix*255).astype(numpy.uint8))
+        name = ("tmp/test-{0:07d}.png".format(count))
         im.save(name)
+        # name = ("tmp/test-%s (%i).tiff") % (label, count)
+        # im.save(name)
 
 def display_char_image():
     gnt_file = ReadGntFile()
